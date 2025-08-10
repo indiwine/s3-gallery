@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum S3Status {
+  PENDING
+  UPLOADED
+  FAILED
+}
+
+enum ImageSize {
+  THUMBNAIL
+  SMALL
+  MEDIUM
+  LARGE
+  ORIGINAL
+}
+
+model File {
+  id        String    @id @default(uuid()) @db.Uuid
+  path      String
+  width     Int
+  height    Int
+  status    S3Status  @default(PENDING)
+  fileSize  Int
+  mimeType  String
+  imageSize ImageSize
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  photoId   String    @db.Uuid
+  photo     Photo     @relation(fields: [photoId], references: [id], onDelete: Cascade)
+
+  @@index([id, photoId, imageSize, createdAt, updatedAt])
+}
+
+model Photo {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String
+  path      String
+  width     Int
+  height    Int
+  userId    String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  deleted   Boolean   @default(false)
+  files     File[]
+  dateTaken DateTime?
+  exifData  Json?
+  status    S3Status  @default(PENDING)
+  mimeType  String
+
+  @@index([name, path, createdAt, deletedAt, deleted, updatedAt, status])
+}

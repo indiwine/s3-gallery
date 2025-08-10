@@ -1,0 +1,1 @@
+export const FILE_SCANNER = Symbol('FILE_SCANNER');

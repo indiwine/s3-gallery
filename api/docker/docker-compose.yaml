@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:17-alpine
+    restart: always
+    shm_size: 128mb
+    ports:
+      - "5432:5432"
+    volumes:
+      - s3gallery-pg-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: s3gallery
+      POSTGRES_PASSWORD: 741963
+      POSTGRES_USER: s3gallery
+
+volumes:
+  s3gallery-pg-data:

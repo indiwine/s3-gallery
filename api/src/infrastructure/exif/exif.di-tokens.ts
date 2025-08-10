@@ -1,0 +1,1 @@
+export const EXIF_SERVICE = Symbol('EXIF_SERVICE');

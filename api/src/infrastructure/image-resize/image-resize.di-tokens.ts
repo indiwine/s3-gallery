@@ -1,0 +1,1 @@
+export const IMAGE_RESIZE_ADAPTER = Symbol('IMAGE_RESIZE_ADAPTER');

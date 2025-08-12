@@ -6,18 +6,19 @@ import { PrismaModule } from './infrastructure/prisma/prisma.module';
 import { PhotoModule } from './modules/photo/photo.module';
 import { ClsModule } from 'nestjs-cls';
 import { CqrsModule } from '@nestjs/cqrs';
-import { ExifModule } from './infrastructure/adapters/exif/exif.module';
-import { FileScannerModule } from './infrastructure/file-scanner/file-scanner.module';
+
 import { ImageResizeModule } from './infrastructure/image-resize/image-resize.module';
 import { StorageModule } from './infrastructure/storage/storage.module';
+import { ExifModule } from '@src/infrastructure/exif/exif.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    GraphQLModule.forRoot<ApolloDriverConfig>({
-      driver: ApolloDriver,
-      graphiql: true,
-    }),
+    // GraphQLModule.forRoot<ApolloDriverConfig>({
+    //   driver: ApolloDriver,
+    //   graphiql: false,
+    //   autoSchemaFile: true
+    // }),
     ClsModule.forRoot({
       global: true,
       middleware: {
@@ -29,7 +30,6 @@ import { StorageModule } from './infrastructure/storage/storage.module';
     PrismaModule,
     PhotoModule,
     ExifModule,
-    FileScannerModule,
     ImageResizeModule,
     StorageModule,
   ],

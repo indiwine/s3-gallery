@@ -1,13 +1,9 @@
-import { DynamicModule, Module, Provider } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { DynamicModule, Global, Module, Provider } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { S3Client } from '@aws-sdk/client-s3';
 
-import {
-  LocalStorageStrategy,
-} from './strategies/local-storage.strategy';
-import {
-  S3StorageStrategy,
-} from './strategies/s3-storage.strategy';
+import { LocalStorageStrategy } from './strategies/local-storage.strategy';
+import { S3StorageStrategy } from './strategies/s3-storage.strategy';
 import { StorageStrategyPort } from '../ports/storage-strategy.port';
 import { STORAGE_STRATEGY_TOKEN } from '@src/infrastructure/storage/storage.di-tokens';
 import * as os from 'node:os';
@@ -18,7 +14,10 @@ export interface StorageModuleConfig {
   storageType?: string;
 }
 
-@Module({})
+@Global()
+@Module({
+  imports: [ConfigModule]
+})
 export class StorageModule {
   static forRoot(config: StorageModuleConfig = {}): DynamicModule {
     const storageProvider: Provider = {

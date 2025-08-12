@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 import { ArgumentNotProvidedException } from '../exceptions';
 import { Guard } from '../guard';
-import { RequestContextService } from '@libs/application/context/AppRequestContext';
+import { getRequestId } from '@libs/utils/get-request-id.util';
 
 type DomainEventMetadata = {
   /** Timestamp when this domain event occurred */
@@ -45,7 +45,7 @@ export abstract class DomainEvent {
     this.aggregateId = props.aggregateId;
     this.metadata = {
       correlationId:
-        props?.metadata?.correlationId,
+        props?.metadata?.correlationId || getRequestId(),
       causationId: props?.metadata?.causationId,
       timestamp: props?.metadata?.timestamp || Date.now(),
       userId: props?.metadata?.userId,

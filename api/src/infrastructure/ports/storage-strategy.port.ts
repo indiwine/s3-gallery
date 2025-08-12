@@ -1,6 +1,7 @@
 import { ProcessingSessionInterface } from '@src/infrastructure/interfaces/processing-session.interface';
 import { PathGenerationRequest } from '@modules/photo/dtos/path-generation-request.dto';
 import { FilePath } from '@modules/photo/domain/value-objects/file-path.value-object';
+import { StorageFileInfoInterface } from '@src/infrastructure/interfaces/storage-file-info.interface';
 
 export interface StorageStrategyPort {
   // Phase 1: Prepare temp processing
@@ -13,4 +14,7 @@ export interface StorageStrategyPort {
 
   // Path generation
   generatePath(request: PathGenerationRequest): FilePath;
+
+  // File scanning
+  scan(basePath?: string): AsyncGenerator<StorageFileInfoInterface>;
 }

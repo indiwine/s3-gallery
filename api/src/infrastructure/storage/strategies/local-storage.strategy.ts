@@ -7,6 +7,9 @@ import { PathGenerationRequest } from '@modules/photo/dtos/path-generation-reque
 import { AbstractStorageStrategy } from './abstract-storage.strategy';
 import { LocalStorageConfigInterface } from '@src/infrastructure/storage/interfaces/local-storage-config.interface';
 import { FilePath } from '@modules/photo/domain/value-objects/file-path.value-object';
+import { walkStream } from '@nodelib/fs.walk';
+import { StorageFileInfoInterface } from '@src/infrastructure/interfaces/storage-file-info.interface';
+import type { Entry } from '@nodelib/fs.walk/out/types';
 
 @Injectable()
 export class LocalStorageStrategy extends AbstractStorageStrategy {
@@ -98,6 +101,28 @@ export class LocalStorageStrategy extends AbstractStorageStrategy {
     const extension = this.getExtensionFromMimeType(targetMimeType);
     const path = `processed/${targetSize}/${originalFile.id}.${extension}`;
     return new FilePath({ value: path });
+  }
+
+  async *scan(basePath?: string): AsyncGenerator<StorageFileInfoInterface> {
+    const scanPath = basePath
+      ? join(this.config.basePath, basePath)
+      : this.config.basePath;
+
+    const files = walkStream(scanPath, { stats: true });
+    for await (const file of files) {
+      const entry = file as Entry;
+      const relativePath = entry.path
+        .replace(this.config.basePath, '')
+        .replace(/^\//, '');
+
+      yield {
+        path: relativePath,
+        name: entry.name,
+        size: entry.stats?.size || 0,
+        lastModified: entry.stats?.mtime || new Date(),
+        isDirectory: entry.dirent.isDirectory(),
+      };
+    }
   }
 
   private getFullPath(path: FilePath): string {

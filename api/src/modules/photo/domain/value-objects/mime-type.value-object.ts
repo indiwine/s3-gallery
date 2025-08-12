@@ -34,7 +34,7 @@ export class MimeType extends ValueObject<string> {
 
   get fileExtension(): string[] {
     return SupportedFileFormatsService.getExtensionsFromMimeType(
-      this.props.value,
+      this.props.value as SupportedImageMimeTypes,
     );
   }
 }

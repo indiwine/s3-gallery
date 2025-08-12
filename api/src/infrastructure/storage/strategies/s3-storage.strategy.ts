@@ -1,21 +1,19 @@
 import { Inject, Injectable } from '@nestjs/common';
 import {
-  HeadBucketCommand,
   PutObjectCommand,
   S3Client,
   DeleteObjectCommand,
+  ListObjectsV2Command,
 } from '@aws-sdk/client-s3';
-import {
-  StorageCommitException,
-  StorageException,
-} from '../exceptions/storage.exceptions';
+import { StorageCommitException } from '../exceptions/storage.exceptions';
 import * as fs from 'fs';
 import { ProcessingSessionInterface } from '@src/infrastructure/interfaces/processing-session.interface';
 import { PathGenerationRequest } from '@modules/photo/dtos/path-generation-request.dto';
-import { StoragePath } from '@modules/photo/domain/value-objects/storage-path.value-object.';
 import { AbstractStorageStrategy } from './abstract-storage.strategy';
 import { S3StorageConfigInterface } from '@src/infrastructure/storage/interfaces/s3-storage-config.interface';
 import { FilePath } from '@modules/photo/domain/value-objects/file-path.value-object';
+
+import { StorageFileInfoInterface } from '@src/infrastructure/interfaces/storage-file-info.interface';
 
 @Injectable()
 export class S3StorageStrategy extends AbstractStorageStrategy {
@@ -166,5 +164,57 @@ export class S3StorageStrategy extends AbstractStorageStrategy {
     const extension = this.getExtensionFromMimeType(targetMimeType);
     const path = `${basePrefix}processed/${targetSize}/${originalFile.id}.${extension}`;
     return new FilePath({ value: path });
+  }
+
+  async *scan(basePath?: string): AsyncGenerator<StorageFileInfoInterface> {
+    const prefix = basePath || this.config.basePath || '';
+    let continuationToken: string | undefined;
+
+    do {
+      try {
+        const command = new ListObjectsV2Command({
+          Bucket: this.config.bucketName,
+          Prefix: prefix,
+          ContinuationToken: continuationToken,
+          MaxKeys: 1000,
+        });
+
+        const response = await this.s3Client.send(command);
+
+        if (response.Contents) {
+          for (const object of response.Contents) {
+            if (
+              object.Key &&
+              object.Size !== undefined &&
+              object.LastModified
+            ) {
+              const pathParts = object.Key.split('/');
+              const name = pathParts[pathParts.length - 1];
+
+              // Skip directories (objects ending with /)
+              if (!name || object.Key.endsWith('/')) {
+                continue;
+              }
+
+              yield {
+                path: object.Key,
+                name,
+                size: object.Size,
+                lastModified: object.LastModified,
+                isDirectory: false,
+              };
+            }
+          }
+        }
+
+        continuationToken = response.NextContinuationToken;
+      } catch (error) {
+        this.logger.error(
+          `Failed to list S3 objects with prefix ${prefix}`,
+          error,
+        );
+        throw error;
+      }
+    } while (continuationToken);
   }
 }

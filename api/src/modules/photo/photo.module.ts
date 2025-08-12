@@ -7,7 +7,6 @@ import { SupportedFileFormatsService } from './domain/supported-file-formats.ser
 import { ImageDeliveryStrategyService } from './domain/image-delivery-strategy.service';
 import { CreatePhotoService } from './commands/create-photo/create-photo.service';
 import { PHOTO_DAO } from '@modules/photo/photo.di-tikens';
-import { FileScannerModule } from '@src/infrastructure/file-scanner/file-scanner.module';
 import { ExifModule } from '@src/infrastructure/exif/exif.module';
 import { ImageResizeModule } from '@src/infrastructure/image-resize/image-resize.module';
 import { PrismaModule } from '@src/infrastructure/prisma/prisma.module';
@@ -28,15 +27,18 @@ const domainServices: Provider[] = [
   ImageDeliveryStrategyService,
 ];
 
-const commands: Provider[] = [ScanFilesystemService, CreatePhotoService, ResizeImageService];
+const commands: Provider[] = [
+  ScanFilesystemService,
+  CreatePhotoService,
+  ResizeImageService,
+];
 
 @Module({
   imports: [
-    FileScannerModule,
     ExifModule,
     ImageResizeModule,
     PrismaModule,
-    StorageModule.forRoot()
+    StorageModule.forRoot(),
   ],
   providers: [...mappers, ...daoProviders, ...domainServices, ...commands],
 })

@@ -6,10 +6,13 @@ import { FilePath } from '@modules/photo/domain/value-objects/file-path.value-ob
 import { ImageDimensions } from '@modules/photo/domain/value-objects/image-dimensions.value-object';
 import { Ok, Result } from 'oxide.ts';
 import { AggregateID } from '@libs/ddd';
+import { Inject } from '@nestjs/common';
+import { PHOTO_DAO } from '@modules/photo/photo.di-tikens';
 
 @CommandHandler(CreatePhotoCommand)
 export class CreatePhotoService implements ICommandHandler<CreatePhotoCommand> {
-  constructor(protected readonly photoDao: PhotoDaoPort) {}
+  constructor(
+    @Inject(PHOTO_DAO) protected readonly photoDao: PhotoDaoPort) {}
   async execute(
     command: CreatePhotoCommand,
   ): Promise<Result<AggregateID, Error>> {

@@ -8,7 +8,7 @@ import { FileSize } from '@modules/photo/domain/value-objects/file-size.value-ob
 import { S3Status } from '@modules/photo/domain/photo.types';
 import { ImageDimensions } from '@modules/photo/domain/value-objects/image-dimensions.value-object';
 import { MimeType } from '@modules/photo/domain/value-objects/mime-type.value-object';
-import { ImageResizeFailedException } from '@src/infrastructure/image-resize/exceptions/image-resize-failed.exception';
+import { ImageResizeFailedException } from '@src/infrastructure/image-processing/exceptions/image-resize-failed.exception';
 import { STORAGE_STRATEGY_TOKEN } from '@src/infrastructure/storage/storage.di-tokens';
 import { StorageStrategyPort } from '@src/infrastructure/ports/storage-strategy.port';
 import { PathGenerationRequest } from '@modules/photo/dtos/path-generation-request.dto';

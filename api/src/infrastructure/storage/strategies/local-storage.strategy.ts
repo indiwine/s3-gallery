@@ -1,5 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { StorageCommitException } from '../exceptions/storage.exceptions';
+import {
+  StorageCommitException,
+  DirectoryEntryPathException,
+} from '@src/infrastructure/storage/exceptions/storage.exceptions';
 import { dirname, join } from 'path';
 import * as fs from 'fs';
 import { ProcessingSessionInterface } from '@src/infrastructure/interfaces/processing-session.interface';
@@ -127,5 +130,17 @@ export class LocalStorageStrategy extends AbstractStorageStrategy {
 
   private getFullPath(path: FilePath): string {
     return join(this.config.basePath, path.relativePath);
+  }
+
+  getLocalFilePath(
+    file: StorageFileInfoInterface,
+    _session?: ProcessingSessionInterface,
+  ): Promise<string> {
+    // reference session to avoid unused param lint error without changing behavior
+    void _session;
+    if (file.isDirectory) {
+      throw new DirectoryEntryPathException();
+    }
+    return Promise.resolve(join(this.config.basePath, file.path));
   }
 }

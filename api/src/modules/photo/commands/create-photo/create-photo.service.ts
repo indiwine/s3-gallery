@@ -11,8 +11,7 @@ import { PHOTO_DAO } from '@modules/photo/photo.di-tikens';
 
 @CommandHandler(CreatePhotoCommand)
 export class CreatePhotoService implements ICommandHandler<CreatePhotoCommand> {
-  constructor(
-    @Inject(PHOTO_DAO) protected readonly photoDao: PhotoDaoPort) {}
+  constructor(@Inject(PHOTO_DAO) protected readonly photoDao: PhotoDaoPort) {}
   async execute(
     command: CreatePhotoCommand,
   ): Promise<Result<AggregateID, Error>> {

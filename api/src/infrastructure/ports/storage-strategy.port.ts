@@ -17,4 +17,10 @@ export interface StorageStrategyPort {
 
   // File scanning
   scan(basePath?: string): AsyncGenerator<StorageFileInfoInterface>;
+
+  // Ensure readable local file path for further processing
+  getLocalFilePath(
+    file: StorageFileInfoInterface,
+    session?: ProcessingSessionInterface,
+  ): Promise<string>;
 }

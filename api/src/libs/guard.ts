@@ -1,3 +1,5 @@
+import { ArgumentNotProvidedException } from './exceptions';
+
 export class Guard {
   /**
    * Checks if value is empty. Accepts strings, numbers, booleans, objects and arrays.
@@ -39,7 +41,7 @@ export class Guard {
     max: number,
   ): boolean {
     if (Guard.isEmpty(value)) {
-      throw new Error(
+      throw new ArgumentNotProvidedException(
         'Cannot check length of a value. Provided value is empty',
       );
     }

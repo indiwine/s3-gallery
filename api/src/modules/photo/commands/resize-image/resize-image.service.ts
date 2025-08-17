@@ -7,10 +7,11 @@ import { PhotoDaoPort } from '@modules/photo/database/photo.dao.port';
 import { PHOTO_DAO } from '@modules/photo/photo.di-tikens';
 import { Inject } from '@nestjs/common';
 import { ImageSize } from '@modules/photo/domain/file.types';
-import { ImageProcessingFailedException } from '@src/infrastructure/storage/exceptions/storage.exceptions';
+import { ImageProcessingFailedException } from '@src/infrastructure/image-processing/exceptions/image-processing.exceptions';
+import { ArgumentOutOfRangeException } from '@libs/exceptions';
 import { FileEntity } from '@modules/photo/domain/file.entity';
 import { ImageResizePort } from '@src/infrastructure/ports/image-resize.port';
-import { IMAGE_RESIZE_ADAPTER } from '@src/infrastructure/image-resize/image-resize.di-tokens';
+import { IMAGE_RESIZE_ADAPTER } from '@src/infrastructure/image-processing/image-processing.di-tokens';
 import { ImageThumbnailDefinition } from '@modules/photo/interfaces/image-thumbnail-definition.interface';
 import { STORAGE_STRATEGY_TOKEN } from '@src/infrastructure/storage/storage.di-tokens';
 import { EXIF_SERVICE } from '@src/infrastructure/exif/exif.di-tokens';
@@ -111,9 +112,11 @@ export class ResizeImageService implements ICommandHandler<ResizeImageCommand> {
       // Phase 4: Rollback on any error
       await this.storageStrategy.rollbackSession(session);
 
+      const message = error instanceof Error ? error.message : String(error);
+      const cause = error instanceof Error ? error : undefined;
       throw new ImageProcessingFailedException(
-        `Failed to process image ${originalPhoto.id}: ${error.message}`,
-        error,
+        `Failed to process image ${originalPhoto.id}: ${message}`,
+        cause,
       );
     }
   }
@@ -130,7 +133,7 @@ export class ResizeImageService implements ICommandHandler<ResizeImageCommand> {
     };
 
     if (!configurations[size]) {
-      throw new Error(`Unsupported image size: ${size}`);
+      throw new ArgumentOutOfRangeException(`Unsupported image size: ${size}`);
     }
 
     return configurations[size as Exclude<ImageSize, ImageSize.ORIGINAL>];

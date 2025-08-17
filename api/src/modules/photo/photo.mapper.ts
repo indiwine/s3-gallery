@@ -10,6 +10,7 @@ import {
   ExifDataProps,
 } from '@modules/photo/domain/value-objects/exif-data.value-object';
 import { Injectable } from '@nestjs/common';
+import { NotImplementedException } from '@libs/exceptions/not-implemented.exception';
 
 @Injectable()
 export class PhotoMapper
@@ -51,7 +52,7 @@ export class PhotoMapper
       },
     });
   }
-  toResponse(entity: PhotoEntity) {
-    throw new Error('Method not implemented.');
+  toResponse() {
+    throw new NotImplementedException();
   }
 }

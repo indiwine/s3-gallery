@@ -1,6 +1,7 @@
 import { DynamicModule, Global, Module, Provider } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { S3Client } from '@aws-sdk/client-s3';
+import { UnsupportedStorageTypeException } from '@src/infrastructure/storage/exceptions/storage.exceptions';
 
 import { LocalStorageStrategy } from './strategies/local-storage.strategy';
 import { S3StorageStrategy } from './strategies/s3-storage.strategy';
@@ -16,7 +17,7 @@ export interface StorageModuleConfig {
 
 @Global()
 @Module({
-  imports: [ConfigModule]
+  imports: [ConfigModule],
 })
 export class StorageModule {
   static forRoot(config: StorageModuleConfig = {}): DynamicModule {
@@ -62,7 +63,9 @@ export class StorageModule {
           }
 
           default:
-            throw new Error(`Unsupported storage type: ${storageType}`);
+            throw new UnsupportedStorageTypeException(
+              `Unsupported storage type: ${storageType}`,
+            );
         }
       },
       inject: [ConfigService],

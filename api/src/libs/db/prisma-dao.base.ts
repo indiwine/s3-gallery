@@ -1,5 +1,3 @@
 import { DaoPort } from '@libs/ddd';
 
-export abstract class PrismaDaoBase implements DaoPort {
-
-}
+export abstract class PrismaDaoBase implements DaoPort {}

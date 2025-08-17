@@ -4,6 +4,4 @@ export interface StorageFileInfoInterface {
   size: number;
   lastModified: Date;
   isDirectory: boolean;
-  width?: number;
-  height?: number;
 }

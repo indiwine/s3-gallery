@@ -1,12 +1,3 @@
-import { Option } from 'oxide.ts';
-
-/*  Most of repositories will probably need generic 
-    save/find/delete operations, so it's easier
-    to have some shared interfaces.
-    More specific queries should be defined
-    in a respective repository.
-*/
-
 export class Paginated<T> {
   readonly count: number;
   readonly limit: number;
@@ -30,5 +21,4 @@ export type PaginatedQueryParams = {
   orderBy: OrderBy;
 };
 
-export interface DaoPort {
-}
+export interface DaoPort {}

@@ -8,6 +8,7 @@ import { FileSize } from '@modules/photo/domain/value-objects/file-size.value-ob
 import { MimeType } from '@modules/photo/domain/value-objects/mime-type.value-object';
 import { ImageDimensions } from '@modules/photo/domain/value-objects/image-dimensions.value-object';
 import { ExifData } from '@modules/photo/domain/value-objects/exif-data.value-object';
+import { OriginalFileNotFoundException } from '@modules/photo/exceptions/photo.exceptions';
 
 export class PhotoEntity extends AggregateRoot<PhotoProps> {
   protected _id: string;
@@ -69,11 +70,10 @@ export class PhotoEntity extends AggregateRoot<PhotoProps> {
   getOriginalFileOrFail(): FileEntity {
     const originalFile = this.getOriginalFile();
     if (!originalFile) {
-      throw new Error('Original file not found');
+      throw new OriginalFileNotFoundException();
     }
     return originalFile;
   }
 
-  validate(): void {
-  }
+  validate(): void {}
 }

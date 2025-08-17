@@ -44,8 +44,7 @@ export abstract class DomainEvent {
     this.id = randomUUID();
     this.aggregateId = props.aggregateId;
     this.metadata = {
-      correlationId:
-        props?.metadata?.correlationId || getRequestId(),
+      correlationId: props?.metadata?.correlationId || getRequestId(),
       causationId: props?.metadata?.causationId,
       timestamp: props?.metadata?.timestamp || Date.now(),
       userId: props?.metadata?.userId,

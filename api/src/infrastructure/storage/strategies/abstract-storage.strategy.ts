@@ -1,8 +1,5 @@
 import { Logger } from '@nestjs/common';
-import {
-  StorageStrategyPort,
-
-} from '@src/infrastructure/ports/storage-strategy.port';
+import { StorageStrategyPort } from '@src/infrastructure/ports/storage-strategy.port';
 import { ProcessingSessionInterface } from '@src/infrastructure/interfaces/processing-session.interface';
 import { PathGenerationRequest } from '@modules/photo/dtos/path-generation-request.dto';
 import { MimeType } from '@modules/photo/domain/value-objects/mime-type.value-object';
@@ -43,6 +40,10 @@ export abstract class AbstractStorageStrategy implements StorageStrategyPort {
   abstract rollbackSession(session: ProcessingSessionInterface): Promise<void>;
   abstract generatePath(request: PathGenerationRequest): FilePath;
   abstract scan(basePath?: string): AsyncGenerator<StorageFileInfoInterface>;
+  abstract getLocalFilePath(
+    file: StorageFileInfoInterface,
+    session?: ProcessingSessionInterface,
+  ): Promise<string>;
 
   protected async cleanupTempDirectory(tempDir: string): Promise<void> {
     try {

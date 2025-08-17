@@ -18,7 +18,6 @@ export class ResponseBase extends IdResponse {
     this.updatedAt = new Date(props.updatedAt).toISOString();
   }
 
-
   readonly createdAt: string;
 
   readonly updatedAt: string;

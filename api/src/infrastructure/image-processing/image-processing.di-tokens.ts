@@ -1,0 +1,2 @@
+export const IMAGE_RESIZE_ADAPTER = Symbol('IMAGE_RESIZE_ADAPTER');
+export const IMAGE_INFO_ADAPTER = Symbol('IMAGE_INFO_ADAPTER');

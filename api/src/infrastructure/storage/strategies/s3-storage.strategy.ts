@@ -4,8 +4,17 @@ import {
   S3Client,
   DeleteObjectCommand,
   ListObjectsV2Command,
+  GetObjectCommand,
 } from '@aws-sdk/client-s3';
-import { StorageCommitException } from '../exceptions/storage.exceptions';
+import {
+  StorageCommitException,
+  StorageException,
+  DirectoryEntryPathException,
+  EmptyS3ObjectBodyException,
+} from '@src/infrastructure/storage/exceptions/storage.exceptions';
+import * as tmp from 'tmp-promise';
+import { extname } from 'path';
+import { pipeline } from 'stream/promises';
 import * as fs from 'fs';
 import { ProcessingSessionInterface } from '@src/infrastructure/interfaces/processing-session.interface';
 import { PathGenerationRequest } from '@modules/photo/dtos/path-generation-request.dto';
@@ -40,7 +49,7 @@ export class S3StorageStrategy extends AbstractStorageStrategy {
       const readStream = fs.createReadStream(processedFile.tempPath);
       const onAbort = () => {
         try {
-          readStream.destroy(new Error('Upload aborted'));
+          readStream.destroy(new StorageException('Upload aborted'));
         } catch {
           // ignore
         }
@@ -76,7 +85,10 @@ export class S3StorageStrategy extends AbstractStorageStrategy {
           abortController.abort();
         }
         this.logger.error(`Failed to upload ${processedFile.tempPath}`, error);
-        throw error;
+        throw new StorageException(
+          `Failed to upload ${processedFile.tempPath} -> s3://${this.config.bucketName}/${key}`,
+          error as Error,
+        );
       } finally {
         abortController.signal.removeEventListener('abort', onAbort);
       }
@@ -98,7 +110,8 @@ export class S3StorageStrategy extends AbstractStorageStrategy {
       await this.rollbackSession(session);
 
       const message = error instanceof Error ? error.message : String(error);
-      const cause = error instanceof Error ? error : new Error(message);
+      const cause =
+        error instanceof Error ? error : new StorageException(message);
       throw new StorageCommitException(
         `S3 session commit failed: ${message}`,
         cause,
@@ -213,8 +226,63 @@ export class S3StorageStrategy extends AbstractStorageStrategy {
           `Failed to list S3 objects with prefix ${prefix}`,
           error,
         );
-        throw error;
+        throw new StorageException(
+          `Failed to list S3 objects with prefix ${prefix}`,
+          error,
+        );
       }
     } while (continuationToken);
+  }
+
+  async getLocalFilePath(
+    file: StorageFileInfoInterface,
+    session?: ProcessingSessionInterface,
+  ): Promise<string> {
+    if (file.isDirectory) {
+      throw new DirectoryEntryPathException();
+    }
+
+    const key = file.path;
+    let targetPath: string;
+
+    if (session) {
+      // Use the provided processing session temp directory
+      targetPath = this.getTempPath(session, file.name);
+    } else {
+      // Create a standalone temporary file
+      const ext = extname(file.name) || undefined;
+      const tmpFile = await tmp.file({ prefix: 's3-download-', postfix: ext });
+      targetPath = tmpFile.path;
+    }
+
+    try {
+      const response = await this.s3Client.send(
+        new GetObjectCommand({
+          Bucket: this.config.bucketName,
+          Key: key,
+        }),
+      );
+
+      if (!response.Body) {
+        throw new EmptyS3ObjectBodyException(
+          `Empty S3 object body for key: ${key}`,
+        );
+      }
+
+      const bodyStream = response.Body as unknown as NodeJS.ReadableStream;
+      const writeStream = fs.createWriteStream(targetPath);
+      await pipeline(bodyStream, writeStream);
+
+      return targetPath;
+    } catch (error) {
+      this.logger.error(
+        `Failed to download s3://${this.config.bucketName}/${key}`,
+        error,
+      );
+      throw new StorageException(
+        `Failed to download s3://${this.config.bucketName}/${key}`,
+        error as Error,
+      );
+    }
   }
 }

@@ -56,13 +56,13 @@ export class ConflictException extends ExceptionBase {
  * @extends {ExceptionBase}
  */
 export class NotFoundException extends ExceptionBase {
-  static readonly message = 'Not found';
+  static readonly message: string = 'Not found';
 
   constructor(message = NotFoundException.message) {
     super(message);
   }
 
-  readonly code = NOT_FOUND;
+  readonly code: string = NOT_FOUND;
 }
 
 /**

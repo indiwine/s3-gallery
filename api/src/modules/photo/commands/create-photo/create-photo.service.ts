@@ -10,7 +10,9 @@ import { Inject } from '@nestjs/common';
 import { PHOTO_DAO } from '@modules/photo/photo.di-tikens';
 
 @CommandHandler(CreatePhotoCommand)
-export class CreatePhotoService implements ICommandHandler<CreatePhotoCommand> {
+export class CreatePhotoService
+  implements ICommandHandler<CreatePhotoCommand, Result<AggregateID, Error>>
+{
   constructor(@Inject(PHOTO_DAO) protected readonly photoDao: PhotoDaoPort) {}
   async execute(
     command: CreatePhotoCommand,

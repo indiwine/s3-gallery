@@ -61,5 +61,6 @@ model Photo {
   status    S3Status  @default(PENDING)
   mimeType  String
 
+  @@unique([path])
   @@index([name, path, createdAt, deletedAt, deleted, updatedAt, status])
 }

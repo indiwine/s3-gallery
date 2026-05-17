@@ -18,6 +18,7 @@ export class ScanStorageService implements ICommandHandler<ScanStorageCommand> {
         continue;
       }
 
+      const session = await this.storageStrategy.createProcessingSession();
 
     }
   }

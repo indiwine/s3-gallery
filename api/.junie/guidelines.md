@@ -66,6 +66,62 @@ Exceptions and error handling principles
     },
   });
 
+Logging principles and architecture
+
+Principles
+
+- Keep domain pure: the domain layer does not know NestJS or any concrete logger.
+- Depend on a port: application layer uses a LoggerPort interface; infrastructure provides adapters.
+- Prefer structured logs: log JSON with fields/metadata over string-only messages.
+- Correlate requests: automatically add correlation/request IDs and user/context to every log.
+- Centralize cross-cutting logging: use interceptors/middleware/filters for inbound/outbound and error logging, not business logic.
+- Make it swappable: use a null/fake logger for tests; Pino/Winston locally and in prod.
+
+Recommended architecture
+
+- Domain/Application layer
+  - Define a LoggerPort with methods like log/info/warn/error/debug. Accept message and a context/meta object.
+  - Use LoggerPort in application services and domain services only when it conveys business value (e.g., command handled, domain event published). Avoid logging inside entities/aggregates; emit domain events instead.
+
+- Infrastructure layer (adapters)
+  - Implement LoggerPort with a concrete adapter (e.g., Pino or Winston).
+  - Enrich logs with correlationId, requestId, userId, and module/context (automatic via request-scoped context or CLS).
+  - Provide multiple adapters:
+    - ConsoleJsonLoggerAdapter (dev)
+    - PinoLoggerAdapter or WinstonLoggerAdapter (prod)
+    - Null/FakeLoggerAdapter (tests)
+
+- NestJS integration
+  - Use a Nest provider token for LoggerPort, binding it to your chosen adapter.
+  - Use a request context solution to auto-enrich logs:
+    - nestjs-cls or AsyncLocalStorage to store correlationId, userId, tenantId.
+  - Interceptors/Middleware/Filters:
+    - Middleware: start CLS context, generate correlationId if missing, attach to request.
+    - Interceptor: log inbound request/response timing and status.
+    - Exception filter: catch errors, log structured error details once (avoid duplicate logs).
+  - Optionally bridge to Nest’s LoggerService so framework logs go through your adapter (single sink).
+
+What to log (and where)
+
+- Middleware/Interceptor:
+  - method, path, status, duration, correlationId, userId, ip, userAgent
+- Application services/handlers:
+  - high-level business events: command started/completed, aggregate updated, domain event published
+- Error handling:
+  - exception type, message, stack (redacted as needed), correlationId, inputs summary (never raw sensitive payloads)
+
+Configuration
+
+- Dev: pretty-print + minimal noise.
+- Prod: JSON logs, fixed schema, stable keys. Route to stdout; let the platform aggregate (e.g., CloudWatch, ELK).
+- Levels per environment (e.g., debug only in dev).
+- Redaction/PII: define a redaction list (password, tokens, secrets, etc.). Use serializer/redaction features (Pino supports redaction paths).
+
+Testing
+
+- Inject Null/Fake logger to silence logs and assert calls in unit tests.
+- For integration/e2e, keep JSON logs and assert presence of correlationId.
+
 How to run
 
 - Node version: Run `nvm use 24` in every terminal session before running any commands (requires nvm).
